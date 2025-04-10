@@ -70,3 +70,35 @@ plt.figure(figsize=(16, 16))
 plt.imshow(cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB))  # Convert BGR to RGB for proper display
 plt.axis("off")  # Turn off axes
 plt.show()
+
+===========================================================
+import cv2
+import matplotlib.pyplot as plt
+from ultralytics import YOLO
+
+# Load the trained model
+model = YOLO('C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/Fine-Tuning-Deep-Seek_R1/runs/obb/train/weights/best.pt')
+
+# Set the path to your image (not from the dataset)
+image_path = '2a06656f13ec4e69a5035b7f8d545fed.png'  # Replace with the path to your image file
+
+# Run the model on your image
+results = model(image_path)
+
+# Print the results (optional)
+print(results[0])
+
+# Get the annotated frame with smaller font size for labels
+# Get the annotated frame without labels
+annotated_frame = results[0].plot(
+    labels=True,          # Enable labels
+    font_size=2,          # Adjust font size (default might be larger, e.g., 12)
+    conf=True,            # Show confidence scores (optional)
+    boxes=True,           # Ensure bounding boxes are drawn
+    line_width=2    # Adjust thickness of bounding boxes (optional)
+)
+# Display the annotated image
+plt.figure(figsize=(16, 16))
+plt.imshow(cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB))  # Convert BGR to RGB
+plt.axis("off")  # Turn off axes
+plt.show()
