@@ -1,8 +1,8 @@
-path: ../datasets/roboflow
+path: C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/word-detect-yolo.v1i.yolov8-obb
 
-train: train/images
-val: valid/images
-test: test/images
+train: C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/word-detect-yolo.v1i.yolov8-obb/train/images
+val: C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/word-detect-yolo.v1i.yolov8-obb/valid/images
+test: C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/word-detect-yolo.v1i.yolov8-obb/test/images
 
-names: 
+names:
   0: word
