@@ -1,0 +1,72 @@
+import cv2
+import matplotlib.pyplot as plt
+from ultralytics import YOLO
+
+# Load the trained model
+model = YOLO('C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/Fine-Tuning-Deep-Seek_R1/runs/obb/train/weights/best.pt')
+
+# Set the path to your image (not from the dataset)
+image_path = 'opp.jpg'  # Replace with the path to your image file
+
+# Run the model on your image
+results = model(image_path)
+
+# Print the results (optional)
+print(results[0])
+
+# Get the annotated frame with smaller font size for labels
+# Get the annotated frame without labels
+annotated_frame = results[0].plot(labels=False)  # Disable labels to not display the word # Adjust font_size to make text smaller (default is larger, e.g., 12)
+
+# Display the annotated image
+plt.figure(figsize=(16, 16))
+plt.imshow(cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB))  # Convert BGR to RGB
+plt.axis("off")  # Turn off axes
+plt.show()
+
+
+================
+import cv2
+import matplotlib.pyplot as plt
+from ultralytics import YOLO
+import easyocr  # Import EasyOCR
+
+# Load the trained YOLO model
+model = YOLO('C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/Fine-Tuning-Deep-Seek_R1/runs/obb/train/weights/best.pt')
+
+# Set the path to your image (not from the dataset)
+image_path = 'opp.jpg'  # Replace with the path to your image file
+
+# Run the model on your image
+results = model(image_path)
+
+# Initialize EasyOCR reader
+reader = easyocr.Reader(['en'])  # You can add more languages if needed, e.g., ['en', 'fr']
+
+# Get the annotated frame from YOLO without labels
+annotated_frame = results[0].plot(labels=False)  # Disable labels to not display the word
+
+# Read the image using OpenCV (for OCR processing)
+image = cv2.imread(image_path)
+
+# Run EasyOCR to extract text from the image
+ocr_results = reader.readtext(image)
+
+# Loop through each detected OCR result and draw the bounding box and text
+for (bbox, text, prob) in ocr_results:
+    # Unpack the bounding box coordinates
+    (top_left, top_right, bottom_right, bottom_left) = bbox
+    top_left = tuple(map(int, top_left))
+    bottom_right = tuple(map(int, bottom_right))
+
+    # Draw the bounding box around the detected text
+    cv2.rectangle(annotated_frame, top_left, bottom_right, (0, 255, 0), 2)
+    
+    # Put the text label on top of the bounding box
+    cv2.putText(annotated_frame, text, (top_left[0], top_left[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
+
+# Display the annotated image with both YOLO and OCR bounding boxes and text
+plt.figure(figsize=(16, 16))
+plt.imshow(cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB))  # Convert BGR to RGB for proper display
+plt.axis("off")  # Turn off axes
+plt.show()
