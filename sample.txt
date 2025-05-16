@@ -1,0 +1,121 @@
+from ultralytics import YOLO
+
+model = YOLO('yolov8n-obb.pt')
+
+results = model.train(
+    data="C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/word-detect-yolo.v1i.yolov8-obb/data.yaml",
+    epochs=50,
+    imgsz=640
+)
+
+
+==============
+from paddleocr import PaddleOCR, draw_ocr
+from PIL import Image
+import matplotlib.pyplot as plt
+
+# Initialize PaddleOCR
+ocr = PaddleOCR(use_angle_cls=True, lang='en')  # Run once to download models
+img_path = '3e9a977c1fff4703a5af6541b470869e.png'
+
+# Perform OCR
+result = ocr.ocr(img_path, cls=True)
+for line in result[0]:  # Access the first (and only) item in result
+    print(line)
+
+# Draw OCR result
+image = Image.open(img_path).convert('RGB')
+boxes = [line[0] for line in result[0]]
+txts = [line[1][0] for line in result[0]]
+scores = [line[1][1] for line in result[0]]
+im_show = draw_ocr(image, boxes, txts, scores, font_path='C:/Windows/Fonts/arial.ttf')  # Use accessible font
+
+# Convert to PIL Image for display
+im_show_pil = Image.fromarray(im_show)
+
+# Option 1: Display using PIL's show() (opens in default image viewer)
+im_show_pil.show()
+
+# Option 2: Display using matplotlib (more customizable, interactive in some environments)
+plt.figure(figsize=(20, 20))  # Set figure size
+plt.imshow(im_show)
+plt.axis('off')  # Hide axes for cleaner display
+plt.title('OCR Results')
+plt.show()
+=======================================
+import cv2
+import matplotlib.pyplot as plt
+from ultralytics import YOLO
+
+# Load the trained model
+model = YOLO('C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/Fine-Tuning-Deep-Seek_R1/runs/obb/train/weights/best.pt')
+
+# Set the path to your image (not from the dataset)
+image_path = '3e9a977c1fff4703a5af6541b470869e.png'  # Replace with the path to your image file
+
+# Run the model on your image
+results = model(image_path)
+
+
+# Print the results (optional)
+print(results[0])
+
+# Get the annotated frame with smaller font size for labels
+# Get the annotated frame without labels
+annotated_frame = results[0].plot(
+    labels=True,          # Enable labels to show class names and confidence scores
+    font_size=8,          # Adjust font size for readability
+    conf=True,            # Show confidence scores
+    boxes=True,           # Ensure bounding boxes are drawn
+    line_width=1          # Adjust thickness of bounding boxes
+)
+# Display the annotated image
+plt.figure(figsize=(16, 16))
+plt.imshow(cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB))  # Convert BGR to RGB
+plt.axis("off")  # Turn off axes
+plt.show()
+
+and
+
+%matplotlib inline
+
+from ultralytics import YOLO
+import matplotlib.pyplot as plt
+
+# Load the trained model
+model = YOLO('C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/Fine-Tuning-Deep-Seek_R1/runs/obb/train/weights/best.pt')
+
+# Evaluate the model on the validation/test dataset
+results = model.val(data="C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/word-detect-yolo.v1i.yolov8-obb/data.yaml")
+
+# Display accuracy metrics
+print("YOLOv8-OBB Model Accuracy Metrics:")
+print(f"Precision: {results.results_dict['metrics/precision(B)']:.3f}")
+print(f"Recall: {results.results_dict['metrics/recall(B)']:.3f}")
+print(f"mAP@0.5: {results.results_dict['metrics/mAP50(B)']:.3f}")
+print(f"mAP@0.5:0.95: {results.results_dict['metrics/mAP50-95(B)']:.3f}")
+
+
+# Extract metrics from results
+metrics = {
+    "Precision": results.results_dict['metrics/precision(B)'],
+    "Recall": results.results_dict['metrics/recall(B)'],
+    "mAP@0.5": results.results_dict['metrics/mAP50(B)'],
+    "mAP@0.5:0.95": results.results_dict['metrics/mAP50-95(B)']
+}
+
+# Plotting
+plt.figure(figsize=(8, 5))
+plt.plot(list(metrics.keys()), list(metrics.values()), marker='o', linestyle='-', color='blue')
+plt.ylim(0, 1.05)
+plt.title("YOLOv8-OBB Model Accuracy Metrics")
+plt.xlabel("Metric")
+plt.ylabel("Score")
+plt.grid(True)
+
+# Annotate data points
+for i, (metric, value) in enumerate(metrics.items()):
+    plt.text(i, value + 0.02, f"{value:.2f}", ha='center')
+
+plt.tight_layout()
+plt.show()
