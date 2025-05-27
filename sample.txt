@@ -119,3 +119,39 @@ for i, (metric, value) in enumerate(metrics.items()):
 
 plt.tight_layout()
 plt.show()
+
+===========================================================
+from paddleocr import PaddleOCR, draw_ocr
+from PIL import Image
+import matplotlib.pyplot as plt
+
+# Initialize PaddleOCR
+ocr = PaddleOCR(use_angle_cls=True, lang='en')  # Run once to download models
+img_path = '3e9a977c1fff4703a5af6541b470869e.png'
+
+# Perform OCR
+result = ocr.ocr(img_path, cls=True)
+for line in result[0]:  # Access the first (and only) item in result
+    print(line)
+
+# Draw OCR result
+image = Image.open(img_path).convert('RGB')
+boxes = [line[0] for line in result[0]]
+txts = [line[1][0] for line in result[0]]
+scores = [line[1][1] for line in result[0]]
+im_show = draw_ocr(image, boxes, txts, scores, font_path='C:/Windows/Fonts/arial.ttf')  # Use accessible font
+
+# Convert to PIL Image for display
+im_show_pil = Image.fromarray(im_show)
+
+# Option 1: Display using PIL's show() (opens in default image viewer)
+im_show_pil.show()
+
+# Option 2: Display using matplotlib (more customizable, interactive in some environments)
+plt.figure(figsize=(20, 20))  # Set figure size
+plt.imshow(im_show)
+plt.axis('off')  # Hide axes for cleaner display
+plt.title('OCR Results')
+plt.show()
+=================
+%matplotlib inline
