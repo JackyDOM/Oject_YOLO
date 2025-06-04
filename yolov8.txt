@@ -1,0 +1,68 @@
+%matplotlib inline
+import cv2
+import matplotlib.pyplot as plt
+from ultralytics import YOLO
+
+# Load the trained model
+model_path = 'C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/Fine-Tuning-Deep-Seek_R1/runs/obb/train/weights/best.pt'
+model = YOLO(model_path)
+
+# ----------- INFERENCE ON A SINGLE IMAGE ------------
+# Path to your custom image
+image_path = 'students_rotated_3.png'
+
+# Run the model on the image
+results = model(image_path)
+
+# Print raw detection results (optional)
+print(results[0])
+
+# Annotated image with bounding boxes and labels
+annotated_frame = results[0].plot(
+    labels=True,
+    font_size=8,
+    conf=True,
+    boxes=True,
+    line_width=1
+)
+
+# Display annotated image
+plt.figure(figsize=(10, 10))
+plt.imshow(cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB))
+plt.title("YOLOv8-OBB Inference Result")
+plt.axis("off")
+plt.show()
+
+# ----------- MODEL EVALUATION ON VALIDATION DATASET ------------
+# Evaluate model using the provided data.yaml
+val_results = model.val(data="C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/word-detect-yolo.v1i.yolov8-obb/data.yaml")
+
+# Print metrics
+print("YOLOv8-OBB Model Accuracy Metrics:")
+print(f"Precision: {val_results.results_dict['metrics/precision(B)']:.3f}")
+print(f"Recall: {val_results.results_dict['metrics/recall(B)']:.3f}")
+print(f"mAP@0.5: {val_results.results_dict['metrics/mAP50(B)']:.3f}")
+print(f"mAP@0.5:0.95: {val_results.results_dict['metrics/mAP50-95(B)']:.3f}")
+
+# Plot metrics
+metrics = {
+    "Precision": val_results.results_dict['metrics/precision(B)'],
+    "Recall": val_results.results_dict['metrics/recall(B)'],
+    "mAP@0.5": val_results.results_dict['metrics/mAP50(B)'],
+    "mAP@0.5:0.95": val_results.results_dict['metrics/mAP50-95(B)']
+}
+
+plt.figure(figsize=(8, 5))
+plt.plot(list(metrics.keys()), list(metrics.values()), marker='o', linestyle='-', color='blue')
+plt.ylim(0, 1.05)
+plt.title("YOLOv8-OBB Model Accuracy Metrics")
+plt.xlabel("Metric")
+plt.ylabel("Score")
+plt.grid(True)
+
+# Annotate values
+for i, (metric, value) in enumerate(metrics.items()):
+    plt.text(i, value + 0.02, f"{value:.2f}", ha='center')
+
+plt.tight_layout()
+plt.show()
