@@ -1,0 +1,51 @@
+from paddleocr import PaddleOCR, draw_ocr
+from PIL import Image
+import matplotlib.pyplot as plt
+
+# Initialize PaddleOCR
+ocr = PaddleOCR(use_angle_cls=True, lang='en')
+img_path = 'students_rotated_3.png'
+
+# Perform OCR
+result = ocr.ocr(img_path, cls=True)
+for line in result[0]:
+    print(line)
+
+# Prepare data for drawing and plotting
+image = Image.open(img_path).convert('RGB')
+boxes = [line[0] for line in result[0]]
+txts = [line[1][0] for line in result[0]]
+scores = [line[1][1] for line in result[0]]
+
+im_show = draw_ocr(image, boxes, txts, scores, font_path='C:/Windows/Fonts/arial.ttf')
+
+im_show_pil = Image.fromarray(im_show)
+
+# Plot confidence scores with text labels on x-axis and percentage on top of bars
+x_labels = [txt if len(txt) <= 15 else txt[:15] + '...' for txt in txts]
+
+plt.figure(figsize=(12, 6))
+bars = plt.bar(x_labels, scores, color='skyblue')
+plt.ylim(0, 1)
+plt.xlabel('Detected Text Lines')
+plt.ylabel('Confidence Score')
+plt.title('OCR Confidence Scores per Detected Text')
+plt.xticks(rotation=45, ha='right')
+
+# Add % labels above bars
+for bar, score in zip(bars, scores):
+    height = bar.get_height()
+    plt.text(bar.get_x() + bar.get_width() / 2, height + 0.02, f'{score*100:.1f}%', 
+             ha='center', va='bottom', fontsize=9, color='black')
+
+plt.tight_layout()
+plt.show()
+
+# Show OCR image with bounding boxes and text
+im_show_pil.show()
+
+plt.figure(figsize=(20, 20))
+plt.imshow(im_show)
+plt.axis('off')
+plt.title('OCR Results')
+plt.show()
