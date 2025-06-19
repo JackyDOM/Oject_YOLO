@@ -1,0 +1,88 @@
+from paddleocr import PaddleOCR, draw_ocr
+from PIL import Image
+import matplotlib.pyplot as plt
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+
+# ----------------- DEEPSEEK PART -----------------
+deepseek_model_path = "C:/Users/MSI/Documents/Thesis_Project/Automste_Testing_DeepSeek_Model/Fine-Tuning-Deep-Seek_R1/deepseek_r1_model"
+
+tokenizer = AutoTokenizer.from_pretrained(deepseek_model_path)
+deepseek_model = AutoModelForCausalLM.from_pretrained(
+    deepseek_model_path,
+    torch_dtype=torch.float32
+).to("cpu")
+deepseek_model.eval()
+
+# ----------------- OCR PART -----------------
+# Initialize PaddleOCR
+ocr = PaddleOCR(use_angle_cls=True, lang='en')
+img_path = 'students_rotated_3.png'
+
+# Perform OCR
+result = ocr.ocr(img_path, cls=True)
+for line in result[0]:
+    print(line)
+
+# Prepare data for drawing and plotting
+image = Image.open(img_path).convert('RGB')
+boxes = [line[0] for line in result[0]]
+txts = [line[1][0] for line in result[0]]
+scores = [line[1][1] for line in result[0]]
+
+# Draw OCR results
+im_show = draw_ocr(image, boxes, txts, scores, font_path='C:/Windows/Fonts/arial.ttf')
+im_show_pil = Image.fromarray(im_show)
+
+# ----------------- DEEPSEEK PROMPTING -----------------
+# Join all OCR-detected text
+ocr_text = " ".join(txts)
+
+# Prompt for DeepSeek
+prompt = f"The following text was detected from an image:\n\"{ocr_text}\"\n\nWhat can you infer or summarize from this?"
+
+# Tokenize and generate
+inputs = tokenizer(prompt, return_tensors="pt").to("cpu")
+with torch.no_grad():
+    outputs = deepseek_model.generate(
+        **inputs,
+        max_new_tokens=200,
+        do_sample=True,
+        temperature=0.7,
+        top_p=0.95
+    )
+
+# Decode and print response
+response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+print("\n=== DeepSeek Model Response ===")
+print(response)
+
+# ----------------- PLOTTING PART -----------------
+# Plot confidence scores
+x_labels = [txt if len(txt) <= 15 else txt[:15] + '...' for txt in txts]
+
+plt.figure(figsize=(12, 6))
+bars = plt.bar(x_labels, scores, color='skyblue')
+plt.ylim(0, 1)
+plt.xlabel('Detected Text Lines')
+plt.ylabel('Confidence Score')
+plt.title('OCR Confidence Scores per Detected Text')
+plt.xticks(rotation=45, ha='right')
+
+# Add % labels above bars
+for bar, score in zip(bars, scores):
+    height = bar.get_height()
+    plt.text(bar.get_x() + bar.get_width() / 2, height + 0.02, f'{score*100:.1f}%', 
+             ha='center', va='bottom', fontsize=9, color='black')
+
+plt.tight_layout()
+plt.show()
+
+# Show image with OCR boxes and text
+im_show_pil.show()
+
+plt.figure(figsize=(20, 20))
+plt.imshow(im_show)
+plt.axis('off')
+plt.title('OCR Results')
+plt.show()
